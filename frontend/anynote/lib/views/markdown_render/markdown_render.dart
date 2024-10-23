@@ -33,7 +33,7 @@ class MarkdownParser {
       if (line.trim().isEmpty) {
         nodes.add(MarkdownNode(type: 'paragraph', content: ""));
 
-        if(state.index+1<state.lines.length){
+        if(state.index+1<state.lines.length-2){
           while(state.lines[state.index+1].trim().isEmpty){
             state.index++;
           }
@@ -297,7 +297,7 @@ class MarkdownRenderer extends StatelessWidget {
       case 'ul':
         List<MarkdownNode> items = node.content;
         return Padding(
-          padding: EdgeInsets.only(left: level * 16.0),
+          padding: EdgeInsets.only(left: level * 6.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: items.map<Widget>((item) {
@@ -334,7 +334,7 @@ class MarkdownRenderer extends StatelessWidget {
       case 'ol':
         List<MarkdownNode> items = node.content;
         return Padding(
-          padding: EdgeInsets.only(left: level * 16.0),
+          padding: EdgeInsets.only(left: level * 6.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: items.map<Widget>((item) {
@@ -374,7 +374,7 @@ class MarkdownRenderer extends StatelessWidget {
       case 'todo':
         List<MarkdownNode> items = node.content;
         return Padding(
-          padding: EdgeInsets.only(left: level * 16.0),
+          padding: EdgeInsets.only(left: level * 6.0),
           child: Column(
             children: items.map<Widget>((item) {
               bool checked = item.content['checked'] ?? false;
@@ -382,31 +382,33 @@ class MarkdownRenderer extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Padding(
-                    padding:
-                        EdgeInsets.only(top: fontsize.toDouble() - 4, right: 5),
+                  Baseline(
+                    baseline: fontsize.toDouble()+2,
+                    baselineType: TextBaseline.alphabetic,
                     child: Icon(
-                      size: 16,
+                      size: fontsize.toDouble(),
                       checked
                           ? Icons.check
                           : Icons.check_box_outline_blank_outlined,
-                      color: checked ? Colors.green : Colors.grey,
+                      color: checked ? Colors.green : Colors.blue,
                     ),
                   ),
+                  const SizedBox(width: 5),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(
-                          height: 6,
-                        ),
-                        _renderInlineText(item.content['text']),
-                        if (item.content['children'] != null)
-                          ...item.content['children']!
-                              .map((child) =>
-                                  _renderNode(child, level: level + 1))
-                              .toList(),
-                      ],
+                    child: Baseline(
+                      baseline: fontsize.toDouble(),
+                      baselineType: TextBaseline.alphabetic,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _renderInlineText(item.content['text']),
+                          if (item.content['children'] != null)
+                            ...item.content['children']!
+                                .map((child) =>
+                                _renderNode(child, level: level + 1))
+                                .toList(),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -414,6 +416,7 @@ class MarkdownRenderer extends StatelessWidget {
             }).toList(),
           ),
         );
+
       case 'todo_item':
         // 待办事项项在 'todo' 类型中已经处理，无需单独渲染
         return const SizedBox.shrink();

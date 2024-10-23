@@ -292,7 +292,7 @@ class MarkdownEditingController extends TextEditingController {
                 matchText.replaceFirst('- [ ]', "${zeroWidthChar * 4}▢");
           }
           matchStyle = matchStyle.copyWith(
-            color: Colors.grey,
+            color: Colors.blue,
             fontWeight: FontWeight.bold,
           );
         }

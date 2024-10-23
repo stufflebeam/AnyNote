@@ -77,58 +77,104 @@ class _ArchiveListState extends State<ArchiveList> {
   }
 
   Widget _buildList(List<NoteItem> archivedNotes, bool isArchive) {
-    return LayoutBuilder(builder: (context, constraints) {
-      if (Get.width <= 600) {
-        return ListView.builder(
-          padding: const EdgeInsets.only(bottom: 20),
-          controller: sc,
-          physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics()),
-          itemCount: archivedNotes.length,
-          itemBuilder: (BuildContext context, int index) {
-            final item = archivedNotes[index];
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(timeAgo(item.createTime),style: const TextStyle(fontSize: 10,color: Colors.black38),),
-                  const SizedBox(height: 3,),
-                  NoteItemWidget(
-                    key: ValueKey(item.id),
-                    controller: controller,
-                    item: item,
-                    isArchive: isArchive,
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      } else {
-        return GridView.builder(
-            padding: const EdgeInsets.only(bottom: 20),
-            shrinkWrap: false,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                mainAxisExtent: 270),
-            controller: sc,
-            physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics()),
-            itemCount: archivedNotes.length,
-            itemBuilder: (BuildContext context, int index) {
-              final item = archivedNotes[index];
-              return NoteItemWidget(
-                key: ValueKey(item.id),
-                controller: controller,
-                item: item,
-                isArchive: isArchive,
-              );
-            });
+
+    int _calculateItemCount(List<NoteItem> archivedNotes) {
+      final topmostCount = archivedNotes.where((item) => item.isTopMost).length;
+      final normalCount = archivedNotes.length - topmostCount;
+      int itemCount = 0;
+
+      if (topmostCount > 0) {
+        itemCount += 1 + topmostCount; // Header + items
       }
-    });
+      if (normalCount > 0) {
+        itemCount += 1 + normalCount; // Header + items
+      }
+      return itemCount;
+    }
+
+    Widget _buildHeader(String title, {double topPadding = 10.0}) {
+      return Padding(
+        padding: EdgeInsets.only(left: 8, right: 8, top: topPadding, bottom: 0),
+        child: Row(
+          children: [
+            Text(
+              title,
+              style:  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.black87),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget _buildItem(NoteItem item) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              timeAgo(item.createTime),
+              style: const TextStyle(fontSize: 10, color: Colors.black38),
+            ),
+            const SizedBox(height: 3),
+            NoteItemWidget(
+              key: ValueKey(item.id),
+              controller: controller,
+              item: item,
+              isArchive: isArchive,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 20),
+      controller: sc,
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      itemCount: _calculateItemCount(archivedNotes),
+      itemBuilder: (BuildContext context, int index) {
+        final topmostItems = archivedNotes.where((item) => item.isTopMost).toList();
+        final normalItems = archivedNotes.where((item) => !item.isTopMost).toList();
+
+        int currentIndex = index;
+
+        // Check if we're displaying the "Topmost" header
+        if (topmostItems.isNotEmpty) {
+          if (currentIndex == 0) {
+            return _buildHeader("📌 Topmost");
+          }
+          currentIndex--;
+
+          // Display topmost items
+          if (currentIndex < topmostItems.length) {
+            final item = topmostItems[currentIndex];
+            return _buildItem(item);
+          }
+          currentIndex -= topmostItems.length;
+        }
+
+        // Check if we're displaying the "Notes" header
+        if (normalItems.isNotEmpty) {
+          if (currentIndex == 0) {
+            // Adjust the top padding based on the presence of topmost items
+            final double topPadding = topmostItems.isNotEmpty ? 30.0 : 10.0;
+            return _buildHeader("🗒️ Notes", topPadding: topPadding);
+          }
+          currentIndex--;
+
+          // Display normal items
+          if (currentIndex < normalItems.length) {
+            final item = normalItems[currentIndex];
+            return _buildItem(item);
+          }
+        }
+
+        return const SizedBox.shrink(); // Fallback for any unexpected indices
+      },
+    );
+
+
   }
 
   Widget _buildSearchBar() {

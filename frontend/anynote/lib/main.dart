@@ -15,6 +15,7 @@ import 'package:anynote/views/login.dart';
 import 'package:anynote/views/random_view.dart';
 import 'package:anynote/views/setting_view.dart';
 import 'package:anynote/views/tag_list.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -153,7 +154,7 @@ class NerrowHome extends StatelessWidget {
                 ],
               );
             } else {
-              return const Text("AnyNote");
+              return const Text("AnyNote",style: TextStyle(),);
             }
           }),
           leading: Builder(builder: (context) {
