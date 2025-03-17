@@ -154,7 +154,10 @@ class NerrowHome extends StatelessWidget {
                 ],
               );
             } else {
-              return const Text("AnyNote",style: TextStyle(),);
+              return const Text(
+                "AnyNote",
+                style: TextStyle(),
+              );
             }
           }),
           leading: Builder(builder: (context) {
@@ -178,6 +181,21 @@ class NerrowHome extends StatelessWidget {
         body: SafeArea(
           child: Column(
             children: [
+              Obx(() {
+                  return Wrap(
+                    children: [
+                      ...List.generate(c.tags.length, (index) {
+                        return TextButton(
+                          child: Text(c.tags[index]),
+                          onPressed: () async {
+                            Get.to(() => NoteTagListView(tag: c.tags[index]));
+                          },
+                        );
+                      }),
+                    ],
+                  );
+                }
+              ),
               Expanded(
                 child: ArchiveList(),
               ),
@@ -240,6 +258,8 @@ class BuildDrawer extends StatefulWidget {
 class _BuildDrawerState extends State<BuildDrawer> {
   late ScrollController _scrollController;
   late SafeScrollAnimation _scrollAnimation;
+
+  MainController c = Get.find<MainController>();
 
   @override
   void initState() {
